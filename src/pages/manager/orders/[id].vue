@@ -6,6 +6,6 @@
 </script>
 
 <template>
-    <Orders :orderId = id />
+    <Orders :order = id />
 
 </template>

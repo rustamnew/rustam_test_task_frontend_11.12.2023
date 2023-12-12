@@ -27,14 +27,13 @@ const years = ref([
     },
 ])
 
-const props = defineProps({
-    orderId: { 
+defineProps({
+    order: { 
         type: String, 
-        required: false 
+        required: false,
+        default: "",
     },
 })
-
-console.log(props)
 </script>   
 
 <template>
@@ -49,11 +48,11 @@ console.log(props)
                     <DateRange @change="changeDateRange($event)"/> 
 
                     <Search 
-                    :searchQuery="searchParams.searchQuery" 
+                    :search-query="searchParams.searchQuery" 
                     :types="types" 
                     :type="searchParams.searchType" 
                     @update:type="changeOrderSearchType($event)"
-                    @update:searchQuery="changeOrderSearchQuery($event)"/>
+                    @update:search-query="changeOrderSearchQuery($event)"/>
 
 
                     <div class="row">
@@ -62,27 +61,27 @@ console.log(props)
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('client') ? 'active' : ''" @click="setSearchTag('client')">
-                            <i class="fa-regular fa-crown"></i>
+                            <i class="fa-regular fa-crown" />
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('type_pay') ? 'active' : ''" @click="setSearchTag('type_pay')">
-                            <i class="fa-regular fa-thumbs-up"></i>
+                            <i class="fa-regular fa-thumbs-up" />
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('in_work') ? 'active' : ''" @click="setSearchTag('in_work')">
-                            <i class="fa-regular fa-briefcase"></i>
+                            <i class="fa-regular fa-briefcase" />
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('status') ? 'active' : ''"  @click="setSearchTag('status')">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <i class="fa-solid fa-cloud-arrow-up" />
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('ps_status') ? 'active' : ''"  @click="setSearchTag('ps_status')">
-                            <i class="fa-regular fa-money-bill"></i>
+                            <i class="fa-regular fa-money-bill" />
                         </Button>
 
                         <Button :size="'s'" :color="'purple-reverse'" :class="searchParams.searchTags.includes('unload') ? 'active' : ''"  @click="setSearchTag('unload')">
-                            <i class="fa-regular fa-truck"></i>
+                            <i class="fa-regular fa-truck" />
                         </Button>
                     
                     </div>
@@ -93,11 +92,10 @@ console.log(props)
                 <div class="block">
                     <Select 
                     :items="years" 
-                    :modelValue="searchParams.searchYear" 
-                    @update:model-value="changeOrderSearchYear($event)"
-                    :name="'name'" 
+                    :model-value="searchParams.searchYear" 
                     :description="'Выберите год'"
-                    :placeholder="'Выберите год'"/>
+                    :name="'name'" 
+                    @update:model-value="changeOrderSearchYear($event)"/>
 
                     <div class="row">
                         <Button :size="'large'" :color="'purple'" @click="searchOrder()">
@@ -119,77 +117,40 @@ console.log(props)
 
                 <Empty v-if="orders.length === 0" class="empty-message">Заказов еще нет</Empty>
                 
-                <template v-if="orderId">
-                    <StatusCard v-for="card in orders" :key="card.id">
-                        <div class="inner">
-                            <span>№ {{ card.id }}</span>
+                <StatusCard v-for="card in orders" :key="card.id">
+                    <div class="inner">
+                        <span>№ {{ card.id }}</span>
 
-                            <!--
-                            <br>
+                        <!--
+                        <br>
 
-                            <span v-if="card.date !== '0'">
-                                Дата: {{ card.date }}
-                            </span>
+                        <span v-if="card.date !== '0'">
+                            Дата: {{ card.date }}
+                        </span>
 
-                            <span v-if="card.psid !== '0'">
-                                Номер фотосессии: {{ card.psid }}
-                            </span>
+                        <span v-if="card.psid !== '0'">
+                            Номер фотосессии: {{ card.psid }}
+                        </span>
 
-                            <span v-if="card.uid !== '0'">
-                                Клиент ID: {{ card.uid }}
-                            </span>
+                        <span v-if="card.uid !== '0'">
+                            Клиент ID: {{ card.uid }}
+                        </span>
 
-                            <span v-if="card.phone !== '0'">
-                                Телефон: {{ card.phone }}
-                            </span>
+                        <span v-if="card.phone !== '0'">
+                            Телефон: {{ card.phone }}
+                        </span>
 
-                            <span v-if="card.email_payer !== '0'">
-                                Email: {{ card.email_payer }}
-                            </span>
+                        <span v-if="card.email_payer !== '0'">
+                            Email: {{ card.email_payer }}
+                        </span>
 
-                            <span v-if="card.fi_child !== '0'">
-                                Ребенок: {{ card.fi_child }}
-                            </span>
-                            -->
-                        </div>
-                    </StatusCard>
-                </template>
+                        <span v-if="card.fi_child !== '0'">
+                            Ребенок: {{ card.fi_child }}
+                        </span>
+                        -->
+                    </div>
+                </StatusCard>
 
-                <template v-else>
-                    <StatusCard v-for="card in orders" :key="card.id">
-                        <div class="inner">
-                            <span>№ {{ card.id }}</span>
-
-                            <!--
-                            <br>
-
-                            <span v-if="card.date !== '0'">
-                                Дата: {{ card.date }}
-                            </span>
-
-                            <span v-if="card.psid !== '0'">
-                                Номер фотосессии: {{ card.psid }}
-                            </span>
-
-                            <span v-if="card.uid !== '0'">
-                                Клиент ID: {{ card.uid }}
-                            </span>
-
-                            <span v-if="card.phone !== '0'">
-                                Телефон: {{ card.phone }}
-                            </span>
-
-                            <span v-if="card.email_payer !== '0'">
-                                Email: {{ card.email_payer }}
-                            </span>
-
-                            <span v-if="card.fi_child !== '0'">
-                                Ребенок: {{ card.fi_child }}
-                            </span>
-                            -->
-                        </div>
-                    </StatusCard>
-                </template>
             </div>
         </template>
     </FixedLeftColumnLayout>
@@ -270,8 +231,8 @@ console.log(props)
         async mounted() {
             await this.fetchOrders()
 
-            if (this.orderId) {
-                this.getOrderById(this.orderId)
+            if (this.order) {
+                this.getOrderById(this.order)
                 return
             }
             if (this.checkUrlParams()) {
