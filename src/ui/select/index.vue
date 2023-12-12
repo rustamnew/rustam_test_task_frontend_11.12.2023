@@ -8,7 +8,7 @@
       ]"
     >
       <span class="select-trigger__title">
-        {{ currentItem?.title }}
+        {{ (placeholder && !currentItem?.title) ? placeholder : currentItem?.title }}
       </span>
 
       <SelectIcon v-if="!props.readonly" as-child>
@@ -61,6 +61,7 @@ type Props = {
   required?: boolean;
   theme?: "default" | "solid";
   readonly?: boolean;
+  placeholder? :string;
 };
 
 const emit = defineEmits(["update:modelValue"]);
