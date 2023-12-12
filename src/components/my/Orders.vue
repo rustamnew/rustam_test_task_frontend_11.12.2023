@@ -271,7 +271,6 @@ console.log(props)
             await this.fetchOrders()
 
             if (this.orderId) {
-                console.log(1)
                 this.getOrderById(this.orderId)
                 return
             }
