@@ -45,7 +45,9 @@ defineProps({
                 
                 
                 <div class="block">
-                    <DateRange @change="changeDateRange($event)"/> 
+                    <DateRange 
+                    :date="dateRangeValue"
+                    @change="changeDateRange($event)" /> 
 
                     <Search 
                     :search-query="searchParams.searchQuery" 
@@ -122,7 +124,7 @@ defineProps({
                         <span>№ {{ card.id }}</span>
 
                         <!--
-                        <br>
+                        <br />
 
                         <span v-if="card.date !== '0'">
                             Дата: {{ card.date }}
@@ -208,10 +210,11 @@ defineProps({
                         searchType: 'order_number',
                         searchYear: '',
                         searchTags,
+                        searchDateStart: '',
+                        searchDateFinish: '',
                         searchItems: []
                     },
-                    orders: [],
-                    
+                    orders: []
                 },
 
                 searchParams: {
@@ -219,9 +222,14 @@ defineProps({
                     searchType: 'order_number',
                     searchYear: '',
                     searchTags,
+                    searchDateStart: '',
+                    searchDateFinish: '',
                     searchItems: []
                 },
-
+                dateRangeValue: {
+                    date_start: '',
+                    date_finish: ''
+                },
                 orders,
                 types,
                 route
@@ -258,6 +266,7 @@ defineProps({
 
             checkUrlParams() {
                 const query: any = this.$route.query
+
                 let needSearch = false;
 
                 if (query.search_type) {
@@ -268,16 +277,52 @@ defineProps({
                     this.searchParams.searchQuery = query.search_value
                     needSearch = true
                 }
+                if (query.year) {
+                    this.searchParams.searchYear = query.year
+                    needSearch = true
+                }
+                if (query.date_start) {
+                    this.searchParams.searchDateStart = query.date_start
+                    needSearch = true
+                }
+                if (query.date_finish) {
+                    this.searchParams.searchDateFinish = query.date_finish
+                    needSearch = true
+                }
 
                 return needSearch
             },
 
             setUrlParams() {
-                this.$router.push({query: {
-                    search_type: this.searchParams.searchType,
-                    search_value: this.searchParams.searchQuery,
-                    year: this.searchParams.searchYear
-                }})
+                interface params {
+                    search_type?: string,
+                    search_value?: string,
+                    year?: string,
+                    date_start?: string,
+                    date_finish?: string,
+                }
+
+                const paramsObject: params = {}
+
+                if (this.searchParams.searchType) {
+                    paramsObject.search_type = this.searchParams.searchType
+                }
+                if (this.searchParams.searchQuery) {
+                    paramsObject.search_value = this.searchParams.searchQuery
+                }
+                if (this.searchParams.searchYear) {
+                    paramsObject.year = this.searchParams.searchYear
+                }
+                if (this.searchParams.searchDateStart) {
+                    paramsObject.date_start = this.searchParams.searchDateStart
+                }
+                if (this.searchParams.searchDateFinish) {
+                    paramsObject.date_finish = this.searchParams.searchDateFinish
+                }
+                
+                this.$router.push({
+                    query: paramsObject
+                })
             },
 
             clearUrlParams() {
@@ -294,16 +339,10 @@ defineProps({
 
             changeOrderSearchYear(value: string) {
                 this.searchParams.searchYear = value
-            },       
-
+            },  
+            
             searchOrder() {
                 navigateTo('/manager/orders')
-
-                this.$router.push({query: {
-                    search_type: this.searchParams.searchType,
-                    search_value: this.searchParams.searchQuery,
-                    year: this.searchParams.searchYear
-                }})
 
                 this.orders = this.default.orders
 
@@ -311,11 +350,15 @@ defineProps({
                 const query = this.searchParams.searchQuery
                 const year = this.searchParams.searchYear
 
+                const dateStart = this.searchParams.searchDateStart
+                const dateFinish = this.searchParams.searchDateFinish
+
                 const typeSearchName = this.types[type].name
 
                 this.orders = this.orders.filter((item: any) => {
                     let returnVal = false
                     const itemYear = item.date.slice(6, 10)
+
                     if (itemYear.includes(year)) {
                         returnVal = true
 
@@ -324,15 +367,35 @@ defineProps({
                         } else {
                             returnVal = false
                         }
+
+                        const dateStartUnix = this.formatUrlDateForUnix(dateStart)
+                        const dateFinishUnix = this.formatUrlDateForUnix(dateFinish)
+
+                        returnVal ? returnVal = this.checkDateRangeDiap(item, dateStartUnix, dateFinishUnix) : returnVal = false
+
                     }
                     
                     return returnVal
                 })
-
                 
                 this.searchParams.searchItems = this.orders
                 this.setUrlParams()
                 this.filterByTags()
+            },
+
+            checkDateRangeDiap(item: any, dateStart: any, dateFinish: any) {
+                const day = item.date.slice(0, 2)
+                const month = item.date.slice(3, 5)
+                const year = item.date.slice(6, 10)
+                const itemDate = new Date(year, month - 1, day).getTime()
+
+                let returnValue = false
+                
+                if (dateStart < itemDate && itemDate < dateFinish) {
+                    returnValue = true
+                }
+
+                return returnValue
             },
 
             restoreSearchDefault() {
@@ -388,8 +451,34 @@ defineProps({
                 this.checkDateRange(event)
             },
 
+            formatUnixDateForUrl(unixDate: any) {
+                const date = new Date(unixDate * 1000);
+
+                let day: any = date.getDate();
+                day < 10 ? day = `0${day}` : day = `${day}`
+
+                let month: any = date.getMonth() + 1
+                month < 10 ? month = `0${month}` : month = `${month}`
+
+                const year = date.getFullYear();
+
+                const formattedTime = `${year}${month}${day}`
+
+                return formattedTime
+            },
+
+            formatUrlDateForUnix(urlDate: any) {
+                const day = urlDate.slice(6, 8)
+                const month = urlDate.slice(4, 6)
+                const year = urlDate.slice(0, 4)
+
+                const unixDate = new Date(year, month - 1, day).getTime()
+
+                return unixDate
+            },
+
             checkDateRange(dateRange: any) {
-                const dateRanged = this.default.orders.filter((item: any) => {
+                const dateRangedOrders = this.default.orders.filter((item: any) => {
 
                     const day = item.date.slice(0, 2)
                     const month = item.date.slice(3, 5)
@@ -410,7 +499,12 @@ defineProps({
                     return returnValue
                 }) 
 
-                this.orders = dateRanged
+                this.orders = dateRangedOrders
+
+                this.searchParams.searchDateStart = this.formatUnixDateForUrl(dateRange.date_start)
+                this.searchParams.searchDateFinish = this.formatUnixDateForUrl(dateRange.date_finish)
+
+                this.setUrlParams()
             },
 
             getOrderById(id: string) {
